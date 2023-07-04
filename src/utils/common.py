@@ -223,6 +223,7 @@ def load_pretrained(
         model_to_load = model_args.model_name_or_path
 
     # Load and prepare pretrained models (without valuehead).
+    print(f"[Debug] Loading pretrained model: \n {model_to_load} \n config: {config} \n kwargs: {config_kwargs}")
     model = AutoModel.from_pretrained(model_to_load, config=config, **config_kwargs)
 
     if model_args.use_v2:
