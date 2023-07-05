@@ -228,6 +228,14 @@ def load_pretrained(
     print(f"[Debug] Loading pretrained model: \n {model_to_load} \n config: {config} \n kwargs: {config_kwargs}")
     model = AutoModel.from_pretrained(model_to_load, config=config, **config_kwargs)
 
+    # Register auto class to save the custom code files.
+    if hasattr(config, "auto_map") and "AutoConfig" in config.auto_map:
+        config.__class__.register_for_auto_class()
+    if hasattr(config, "auto_map") and "AutoTokenizer" in config.auto_map:
+        tokenizer.__class__.register_for_auto_class()
+    if hasattr(config, "auto_map") and "AutoModel" in config.auto_map:
+        model.__class__.register_for_auto_class()
+
     if model_args.use_v2:
         assert tokenizer.eos_token_id is not None, "Please update the *.json and *.py files of ChatGLM2-6B from HuggingFace."
         model.lm_head = model.transformer.output_layer
@@ -238,6 +246,7 @@ def load_pretrained(
         output_embedding_base_layer = model
         output_embedding_layer_name = "lm_head"
 
+    # Initialize adapters
     model = prepare_model_for_training(
         model,
         finetuning_args.finetuning_type,
@@ -318,12 +327,12 @@ def prepare_args(
     assert (not training_args.do_predict) or training_args.predict_with_generate, \
         "Please enable `predict_with_generate` to save model predictions."
 
-    assert not (finetuning_args.finetuning_type == "p_tuning" and training_args.fp16), \
-        "Please disable fp16 training while using the P-Tuning v2 method."
-
     if model_args.quantization_bit is not None:
         assert finetuning_args.finetuning_type != "full" and finetuning_args.finetuning_type != "freeze", \
             "Quantization is incompatible with the full-parameter and freeze tuning."
+
+        assert not (finetuning_args.finetuning_type == "p_tuning" and training_args.fp16), \
+            "FP16 training conflicts with quantized P-Tuning."
 
         if not training_args.do_train:
             logger.warning("Evaluating model in 4/8-bit mode may cause lower scores.")
