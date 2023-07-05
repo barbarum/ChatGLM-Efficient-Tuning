@@ -223,9 +223,9 @@ def load_pretrained(
         model_to_load = model_args.model_name_or_path
 
     # Load and prepare pretrained models (without valuehead).
+    # if "device_map" not in config_kwargs:
+    #     config_kwargs["device_map"] = "auto"
     print(f"[Debug] Loading pretrained model: \n {model_to_load} \n config: {config} \n kwargs: {config_kwargs}")
-    if "device_map" not in config_kwargs:
-        config_kwargs["device_map"] = "auto"
     model = AutoModel.from_pretrained(model_to_load, config=config, **config_kwargs)
 
     if model_args.use_v2:
