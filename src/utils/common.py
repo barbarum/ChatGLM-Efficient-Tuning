@@ -226,6 +226,8 @@ def load_pretrained(
     # if "device_map" not in config_kwargs:
     #     config_kwargs["device_map"] = "auto"
     print(f"[Debug] Loading pretrained model: \n {model_to_load} \n config: {config} \n kwargs: {config_kwargs}")
+    if 'quantization_config' in config_kwargs:
+      print(f"[Debug] quantization config: {config_kwargs['quantization_config'].to_dict()}...")
     model = AutoModel.from_pretrained(model_to_load, config=config, **config_kwargs)
 
     # Register auto class to save the custom code files.
